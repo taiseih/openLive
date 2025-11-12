@@ -1,0 +1,49 @@
+# openLive Frontend専用 Docker Compose
+#
+# 【前提条件】
+# 1. 共通インフラ（PostgreSQL, Firebase Emulator）が起動している必要があります。
+#    docker-compose up -d を先に実行してください。
+# 2. Server（Backend）が起動している必要があります。
+#    docker-compose -f docker-compose.server.yml up -d を実行してください。
+#
+# 【起動方法】
+# docker-compose -f docker-compose.frontend.yml up -d
+#
+# 【停止方法】
+# docker-compose -f docker-compose.frontend.yml down
+#
+# 【メリット】
+# - Frontendのみを独立して起動・停止・再起動できる
+# - Frontend開発時にServerを再起動する必要がない
+# - UI/UX開発に集中できる
+# - CI/CDパイプラインで個別にデプロイ可能
+
+version: '3.8'
+
+services:
+  # Next.jsフロントエンド（開発環境）
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile.dev
+    container_name: openlive-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8080/api/v1/ws
+      - NEXT_PUBLIC_FIREBASE_PROJECT_ID=openlive-dev
+      - NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=localhost:9099
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - openlive-network
+    restart: unless-stopped
+
+networks:
+  openlive-network:
+    external: true
+    name: openlive_openlive-network
+

@@ -1,0 +1,21 @@
+# 開発用Dockerfile（ホットリロード対応）
+FROM golang:1.21-alpine
+
+WORKDIR /app
+
+# Airをインストール（ホットリロード用）
+# Go 1.21と互換性のあるバージョンを指定
+RUN go install github.com/cosmtrek/air@v1.49.0
+
+# 依存関係のキャッシュ
+COPY server/go.mod server/go.sum ./
+RUN go mod download
+
+# ソースコードをコピー
+COPY server/ ./
+
+EXPOSE 8080
+
+# Airでホットリロード起動
+CMD ["air", "-c", ".air.toml"]
+

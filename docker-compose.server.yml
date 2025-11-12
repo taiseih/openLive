@@ -1,0 +1,48 @@
+# openLive Server（Backend）専用 Docker Compose
+#
+# 【前提条件】
+# 共通インフラ（PostgreSQL, Firebase Emulator）が起動している必要があります。
+# docker-compose up -d を先に実行してください。
+#
+# 【起動方法】
+# docker-compose -f docker-compose.server.yml up -d
+#
+# 【停止方法】
+# docker-compose -f docker-compose.server.yml down
+#
+# 【メリット】
+# - Serverのみを独立して起動・停止・再起動できる
+# - Backend開発時にFrontendのリソースを使わない
+# - Server側のコードを変更してもFrontendに影響しない
+# - CI/CDパイプラインで個別にデプロイ可能
+
+version: '3.8'
+
+services:
+  # Goバックエンドサーバー（開発環境）
+  server:
+    build:
+      context: .
+      dockerfile: docker/server/Dockerfile.dev
+    container_name: openlive-server
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - ENV=development
+      - DATABASE_URL=postgres://openlive:openlive@postgres:5432/openlive_db?sslmode=disable
+      - FIREBASE_PROJECT_ID=openlive-dev
+      - FIREBASE_AUTH_EMULATOR_HOST=firebase:9099
+      - CORS_ALLOW_ORIGINS=http://localhost:3000,http://localhost:8080
+    volumes:
+      - ./server:/app
+      - /app/tmp  # Airの一時ファイル用
+    networks:
+      - openlive-network
+    restart: unless-stopped
+
+networks:
+  openlive-network:
+    external: true
+    name: openlive_openlive-network
+

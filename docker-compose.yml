@@ -1,0 +1,58 @@
+# openLive 共通インフラ（PostgreSQL + Firebase Emulator）
+#
+# このファイルは共通のインフラサービスのみを起動します。
+# Server/Frontendは個別のdocker-composeファイルで起動してください。
+#
+# 使用方法:
+#   docker-compose up -d                    # 共通インフラのみ起動
+#   docker-compose -f docker-compose.server.yml up -d   # Serverを追加起動
+#   docker-compose -f docker-compose.frontend.yml up -d # Frontendを追加起動
+
+version: '3.8'
+
+services:
+  # PostgreSQLデータベース
+  postgres:
+    image: postgres:16-alpine
+    container_name: openlive-postgres
+    environment:
+      POSTGRES_USER: openlive
+      POSTGRES_PASSWORD: openlive
+      POSTGRES_DB: openlive_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./server/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openlive"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - openlive-network
+
+  # Firebase Emulator
+  firebase:
+    build:
+      context: .
+      dockerfile: docker/firebase/Dockerfile
+    container_name: openlive-firebase
+    ports:
+      - "9099:9099"  # Auth Emulator
+      - "4000:4000"  # Emulator UI
+    networks:
+      - openlive-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9099"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  openlive-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+

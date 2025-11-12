@@ -5,7 +5,40 @@
 基盤プラットフォーム内にユーザーが公開のライブ配信エリアを作成し、会員またはフリーでライブ配信ができるプラットフォーム環境。
 ユーザーは独自の広場（配信スペース）を構築し、ユーザーを招待し、広場内でのみ交流可能となるマルチプラットフォーム型のライブ配信アプリ。
 
+## プロジェクト構成
+
+このプロジェクトはモノレポ構成で、以下のディレクトリで構成されています：
+
+```
+.
+├── server/              # Goバックエンド
+│   ├── cmd/            # アプリケーションエントリーポイント
+│   ├── internal/       # 内部パッケージ
+│   │   ├── domain/     # ドメイン層（DDD）
+│   │   ├── usecase/    # ユースケース層
+│   │   ├── interface/  # インターフェース層
+│   │   ├── infrastructure/ # インフラ層
+│   │   └── config/     # 設定管理
+│   ├── migrations/     # DBマイグレーション
+│   └── go.mod
+├── frontend/           # Next.jsフロントエンド
+│   ├── src/
+│   │   ├── app/       # Next.js App Router
+│   │   ├── components/ # UIコンポーネント（SOLID原則）
+│   │   ├── hooks/     # カスタムフック
+│   │   ├── services/  # APIサービス層
+│   │   ├── store/     # 状態管理（Zustand）
+│   │   └── types/     # TypeScript型定義
+│   └── package.json
+├── docker/             # Docker関連ファイル
+│   ├── server/
+│   └── firebase/
+└── docker-compose.yml  # 統合Docker Compose設定
+```
+
 ## 技術スタック
+
+### Backend (Server)
 
 - **言語**: Go 1.21
 - **フレームワーク**: Echo v4.12.0
@@ -14,23 +47,16 @@
 - **リアルタイム通信**: WebSocket + WebRTC
 - **アーキテクチャ**: DDD (Domain-Driven Design) + Clean Architecture
 
-## プロジェクト構造
+### Frontend
 
-```
-.
-├── cmd/
-│   └── server/           # アプリケーションエントリーポイント
-├── internal/
-│   ├── domain/           # ドメイン層（エンティティ、リポジトリインターフェース）
-│   ├── usecase/          # ユースケース層（ビジネスロジック）
-│   ├── interface/        # インターフェース層（ハンドラー、DTO、ミドルウェア）
-│   ├── infrastructure/   # インフラ層（DB、Firebase、WebSocket）
-│   └── config/           # 設定管理
-├── pkg/                  # 共有パッケージ
-├── migrations/           # DBマイグレーション
-├── docker/               # Docker関連ファイル
-└── firebase/             # Firebase Emulator設定
-```
+- **フレームワーク**: Next.js 14 (App Router)
+- **言語**: TypeScript
+- **UIライブラリ**: Tailwind CSS
+- **状態管理**: Zustand
+- **APIクライアント**: Axios
+- **認証**: Firebase Authentication
+- **リアルタイム通信**: WebSocket, WebRTC (simple-peer)
+- **設計原則**: SOLID原則に準拠
 
 ## 主な機能
 
@@ -60,59 +86,121 @@
 
 - Docker & Docker Compose
 - Go 1.21+ (ローカル実行の場合)
+- Node.js 18+ (ローカル実行の場合)
 
-### 環境変数
+### Docker環境での起動（推奨）
 
-`.env`ファイルを作成して以下を設定：
-
-```env
-# Server Configuration
-PORT=8080
-
-# Database Configuration
-DATABASE_URL=postgres://openlive:openlive@postgres:5432/openlive_db?sslmode=disable
-
-# Firebase Configuration
-FIREBASE_PROJECT_ID=openlive-dev
-FIREBASE_AUTH_EMULATOR_HOST=firebase:9099
-
-# CORS Configuration
-CORS_ALLOW_ORIGINS=http://localhost:3000,http://localhost:8080
-```
-
-### Docker環境での起動
+**分離版構成**: サービスごとに独立して起動・停止できます
 
 ```bash
-# コンテナをビルド＆起動
-make up
-
+# 方法1: Makefileを使用（推奨）
+make all          # 全サービスを一括起動
 # または
-docker-compose up -d
+make infra        # 1. 共通インフラを起動
+make server       # 2. Serverを起動
+make frontend     # 3. Frontendを起動
 
 # ログを確認
-make logs
+make logs         # 全サービスのログ
+make logs-server  # Serverのみ
+make logs-frontend # Frontendのみ
 
-# コンテナを停止
-make down
+# サービスの停止
+make down         # 全サービス停止
+make server-down  # Serverのみ停止
+make frontend-down # Frontendのみ停止
+
+# 方法2: docker-composeコマンドを直接使用
+docker-compose up -d                                # 共通インフラのみ
+docker-compose -f docker-compose.server.yml up -d   # Server追加
+docker-compose -f docker-compose.frontend.yml up -d # Frontend追加
 ```
 
-サーバーは `http://localhost:8080` で起動します。
-Firebase Emulator UIは `http://localhost:4000` でアクセスできます。
+起動後、以下のURLでアクセスできます：
+- フロントエンド: http://localhost:3000
+- バックエンドAPI: http://localhost:8080
+- Firebase Emulator UI: http://localhost:4000
+
+**Makefileコマンド一覧**:
+```bash
+make help          # 全コマンドを表示
+make status        # サービスのステータス確認
+make restart-server # Serverのみ再起動
+make rebuild       # 全サービスをリビルド
+make clean         # 全コンテナとボリュームを削除
+make db            # PostgreSQLに接続
+```
 
 ### ローカル環境での起動
 
+#### Backend
+
 ```bash
+cd server
+
 # 依存関係のインストール
 go mod download
 
+# 環境変数の設定
+cp env.example .env
+# .envファイルを編集
+
 # PostgreSQLとFirebase Emulatorを起動
+cd ..
 docker-compose up -d postgres firebase
 
 # サーバーを起動
-make run-local
-
-# または
+cd server
 go run cmd/server/main.go
+```
+
+#### Frontend
+
+```bash
+cd frontend
+
+# 依存関係のインストール
+npm install
+
+# 開発サーバーを起動
+npm run dev
+```
+
+## Docker Compose構成（分離版）
+
+### ファイル構成
+
+このプロジェクトは**分離版**のDocker Compose構成を採用しています：
+
+1. **`docker-compose.yml`** - 共通インフラ（PostgreSQL + Firebase Emulator）
+2. **`docker-compose.server.yml`** - Goバックエンドサーバー
+3. **`docker-compose.frontend.yml`** - Next.jsフロントエンド
+
+### 分離版のメリット
+
+- ✅ **独立した起動・停止**: フロントエンド/バックエンドを個別に管理
+- ✅ **リソース効率**: Frontend開発時にServerを起動しなくてもOK
+- ✅ **並行開発**: 異なるチームが別々に開発可能
+- ✅ **柔軟な再起動**: Serverだけ、Frontendだけを再起動可能
+- ✅ **個別デプロイ**: CI/CDパイプラインで個別にデプロイ可能
+- ✅ **スケーリング**: サービスごとに独立してスケール可能
+
+### 使用例
+
+```bash
+# Frontend開発の場合
+make infra          # インフラだけ起動
+make server         # Serverを起動
+make frontend       # Frontendを起動・開発
+make restart-frontend # Frontendだけ再起動（Serverは影響なし）
+
+# Backend開発の場合
+make infra          # インフラだけ起動
+make server         # Serverを起動・開発
+make restart-server # Serverだけ再起動（Frontendは影響なし）
+
+# 全サービス起動
+make all            # 全部まとめて起動
 ```
 
 ## API エンドポイント
@@ -152,97 +240,93 @@ go run cmd/server/main.go
 
 - `WS /api/v1/ws/streams/:id` - WebSocket接続 (認証必須)
 
-## WebSocketメッセージフォーマット
+## アーキテクチャ
 
-### チャットメッセージ
+### Backend（DDD + Clean Architecture）
 
-```json
-{
-  "type": "chat",
-  "data": {
-    "message": "Hello, World!"
-  }
-}
-```
+1. **ドメイン層（Domain）**: ビジネスロジックとエンティティ、リポジトリインターフェース
+2. **ユースケース層（UseCase）**: アプリケーションのビジネスルール
+3. **インターフェース層（Interface）**: HTTP/WebSocketハンドラー、DTO、ミドルウェア
+4. **インフラストラクチャ層（Infrastructure）**: データベース、外部サービス、リポジトリ実装
 
-### WebRTCシグナリング
+### Frontend（SOLID原則）
 
-#### Offer
+1. **Single Responsibility Principle（単一責任の原則）**
+   - 各コンポーネント、サービスは単一の責任を持つ
+   - 例：`Button`コンポーネントはボタンの表示のみ、`UserService`はユーザー管理のみ
 
-```json
-{
-  "type": "offer",
-  "to": "user-uuid",
-  "data": {
-    "sdp": "...",
-    "type": "offer"
-  }
-}
-```
+2. **Open/Closed Principle（開放閉鎖の原則）**
+   - 拡張に対して開かれており、変更に対して閉じている
+   - 例：共通コンポーネントは拡張可能だが、既存の実装を変更する必要がない
 
-#### Answer
+3. **Liskov Substitution Principle（リスコフの置換原則）**
+   - インターフェースの実装は置き換え可能
+   - 例：`IHttpClient`の実装を別の実装に置き換えても動作する
 
-```json
-{
-  "type": "answer",
-  "to": "user-uuid",
-  "data": {
-    "sdp": "...",
-    "type": "answer"
-  }
-}
-```
+4. **Interface Segregation Principle（インターフェース分離の原則）**
+   - インターフェースは細かく分割されている
+   - 例：`IUserService`, `ILiveAreaService`, `ILiveStreamService`など
 
-#### ICE Candidate
-
-```json
-{
-  "type": "ice-candidate",
-  "to": "user-uuid",
-  "data": {
-    "candidate": "...",
-    "sdpMid": "...",
-    "sdpMLineIndex": 0
-  }
-}
-```
-
-## データベース
-
-PostgreSQL 16を使用しています。マイグレーションファイルは `migrations/001_init.sql` にあります。
-
-### テーブル構成
-
-- `users` - ユーザー情報
-- `live_areas` - ライブエリア（配信広場）
-- `live_area_members` - エリアメンバー
-- `live_streams` - ライブ配信
-- `live_stream_viewers` - 配信視聴者
+5. **Dependency Inversion Principle（依存性逆転の原則）**
+   - 上位モジュールは下位モジュールに依存しない、抽象に依存する
+   - 例：サービスは`IHttpClient`インターフェースに依存し、具体的な実装には依存しない
 
 ## 開発
 
 ### ホットリロード
 
-開発時はAirを使用してホットリロードが有効になっています：
+開発時はホットリロードが有効になっています：
+
+**Backend**: Airを使用（自動リロード）
+**Frontend**: Next.js Dev Server（自動リロード）
+
+### データベースマイグレーション
 
 ```bash
-docker-compose up
+# Docker環境の場合、初回起動時に自動実行されます
+
+# 手動で実行する場合
+docker-compose exec postgres psql -U openlive -d openlive_db -f /docker-entrypoint-initdb.d/001_init.sql
 ```
 
-### テスト
+### コードフォーマット
 
 ```bash
-make test
+# Backend
+cd server
+go fmt ./...
+
+# Frontend
+cd frontend
+npm run lint
 ```
 
-## アーキテクチャ
+## トラブルシューティング
 
-このプロジェクトはDDD（ドメイン駆動設計）とクリーンアーキテクチャの原則に従っています：
+### ポートが使用されている場合
 
-1. **ドメイン層**: ビジネスロジックとエンティティ
-2. **ユースケース層**: アプリケーションのビジネスルール
-3. **インターフェース層**: HTTP/WebSocketハンドラー、DTO
-4. **インフラストラクチャ層**: データベース、外部サービス
+```bash
+# 使用中のポートを確認
+lsof -i :3000  # Frontend
+lsof -i :8080  # Backend
+lsof -i :5432  # PostgreSQL
+
+# プロセスを停止
+kill -9 <PID>
+```
+
+### Dockerコンテナのリセット
+
+```bash
+# 全コンテナを停止して削除
+docker-compose down -v
+
+# イメージも削除
+docker-compose down -v --rmi all
+
+# 再ビルドして起動
+docker-compose up --build
+```
 
 ## ライセンス
 
