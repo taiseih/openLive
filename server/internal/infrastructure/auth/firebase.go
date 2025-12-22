@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
@@ -27,12 +26,6 @@ func NewFirebaseAuth(ctx context.Context, projectID, emulatorHost, credentialsPa
 
 	config := &firebase.Config{
 		ProjectID: projectID,
-	}
-
-	// Firebase Emulatorを使用する場合
-	if emulatorHost != "" {
-		log.Printf("Using Firebase Auth Emulator at %s", emulatorHost)
-		os.Setenv("FIREBASE_AUTH_EMULATOR_HOST", emulatorHost)
 	}
 
 	app, err := firebase.NewApp(ctx, config, opts...)
@@ -71,4 +64,3 @@ func (f *FirebaseAuth) GetUser(ctx context.Context, uid string) (*auth.UserRecor
 func (f *FirebaseAuth) GetClient() *auth.Client {
 	return f.client
 }
-

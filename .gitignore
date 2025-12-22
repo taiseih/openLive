@@ -4,7 +4,8 @@ Thumbs.db
 
 # IDE
 .idea/
-.vscode/
+# VS Code設定はコミット（チーム共有のため）
+# .vscode/
 *.swp
 *.swo
 *~

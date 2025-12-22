@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
@@ -16,12 +15,10 @@ type ContextKey string
 const (
 	// UserIDKey はユーザーIDのコンテキストキーです
 	UserIDKey ContextKey = "userID"
-	// FirebaseUIDKey はFirebase UIDのコンテキストキーです
-	FirebaseUIDKey ContextKey = "firebaseUID"
 )
 
-// AuthMiddleware はFirebase認証ミドルウェアを返します
-func AuthMiddleware(firebaseAuth *auth.FirebaseAuth, userUseCase usecase.UserUseCase) echo.MiddlewareFunc {
+// AuthMiddleware はJWT認証ミドルウェアを返します
+func AuthMiddleware(jwtAuth *auth.JWTAuth, userUseCase usecase.UserUseCase) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
@@ -37,36 +34,20 @@ func AuthMiddleware(firebaseAuth *auth.FirebaseAuth, userUseCase usecase.UserUse
 
 			idToken := parts[1]
 
-			// Firebase IDトークンを検証
-			token, err := firebaseAuth.VerifyIDToken(context.Background(), idToken)
+			// JWTトークンを検証
+			userID, err := jwtAuth.ParseToken(idToken)
 			if err != nil {
 				return echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
 			}
 
-			// ユーザー情報を取得または作成
-			user, err := userUseCase.GetUserByFirebaseUID(c.Request().Context(), token.UID)
+			// ユーザー情報を取得
+			user, err := userUseCase.GetUserByID(c.Request().Context(), userID)
 			if err != nil {
-				// ユーザーが存在しない場合は、Firebaseから情報を取得して作成
-				firebaseUser, err := firebaseAuth.GetUser(context.Background(), token.UID)
-				if err != nil {
-					return echo.NewHTTPError(http.StatusInternalServerError, "failed to get user info")
-				}
-
-				user, err = userUseCase.CreateUser(
-					c.Request().Context(),
-					token.UID,
-					firebaseUser.Email,
-					firebaseUser.DisplayName,
-					firebaseUser.PhotoURL,
-				)
-				if err != nil {
-					return echo.NewHTTPError(http.StatusInternalServerError, "failed to create user")
-				}
+				return echo.NewHTTPError(http.StatusUnauthorized, "user not found")
 			}
 
 			// コンテキストにユーザー情報を設定
 			c.Set(string(UserIDKey), user.ID)
-			c.Set(string(FirebaseUIDKey), token.UID)
 
 			return next(c)
 		}
@@ -74,7 +55,7 @@ func AuthMiddleware(firebaseAuth *auth.FirebaseAuth, userUseCase usecase.UserUse
 }
 
 // OptionalAuthMiddleware はオプショナルな認証ミドルウェアです（認証エラーでも続行）
-func OptionalAuthMiddleware(firebaseAuth *auth.FirebaseAuth, userUseCase usecase.UserUseCase) echo.MiddlewareFunc {
+func OptionalAuthMiddleware(jwtAuth *auth.JWTAuth, userUseCase usecase.UserUseCase) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
@@ -89,15 +70,14 @@ func OptionalAuthMiddleware(firebaseAuth *auth.FirebaseAuth, userUseCase usecase
 
 			idToken := parts[1]
 
-			token, err := firebaseAuth.VerifyIDToken(context.Background(), idToken)
+			userID, err := jwtAuth.ParseToken(idToken)
 			if err != nil {
 				return next(c)
 			}
 
-			user, err := userUseCase.GetUserByFirebaseUID(c.Request().Context(), token.UID)
+			user, err := userUseCase.GetUserByID(c.Request().Context(), userID)
 			if err == nil {
 				c.Set(string(UserIDKey), user.ID)
-				c.Set(string(FirebaseUIDKey), token.UID)
 			}
 
 			return next(c)

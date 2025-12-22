@@ -36,17 +36,11 @@ func main() {
 	}
 	defer db.Close()
 
-	// Firebase認証初期化
+	// JWT認証初期化（OAuth設定からシークレットを取得）
+	jwtAuth := auth.NewJWTAuth(cfg.OAuth.JWTSecret)
+
+	// コンテキスト
 	ctx := context.Background()
-	firebaseAuth, err := auth.NewFirebaseAuth(
-		ctx,
-		cfg.Firebase.ProjectID,
-		cfg.Firebase.AuthEmulatorHost,
-		cfg.Firebase.CredentialsFilePath,
-	)
-	if err != nil {
-		log.Fatalf("Failed to initialize Firebase Auth: %v", err)
-	}
 
 	// WebSocketハブ初期化
 	hub := websocket.NewHub()
@@ -87,7 +81,7 @@ func main() {
 	api := e.Group("/api/v1")
 
 	// 認証ミドルウェア
-	authMiddleware := appMiddleware.AuthMiddleware(firebaseAuth, userUseCase)
+	authMiddleware := appMiddleware.AuthMiddleware(jwtAuth, userUseCase)
 
 	// ユーザーエンドポイント
 	users := api.Group("/users")

@@ -1,0 +1,37 @@
+{
+  "folders": [
+    {
+      "name": "openLive (Root)",
+      "path": "."
+    },
+    {
+      "name": "Server (Go)",
+      "path": "server"
+    },
+    {
+      "name": "Frontend (Next.js)",
+      "path": "frontend"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.git": true,
+      "**/.DS_Store": true,
+      "**/node_modules": true,
+      "**/.next": true,
+      "**/tmp": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode-remote.remote-containers",
+      "golang.go",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "ms-azuretools.vscode-docker",
+      "eamodio.gitlens"
+    ]
+  }
+}
+
+

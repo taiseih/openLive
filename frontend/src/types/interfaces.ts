@@ -51,6 +51,7 @@ export interface ILiveStreamService {
 // 認証サービスインターフェース
 export interface IAuthService {
   signInWithGoogle(): Promise<void>;
+  signInWithAccessToken(token: string): Promise<void>;
   signOut(): Promise<void>;
   getCurrentToken(): Promise<string | null>;
   onAuthStateChanged(callback: (user: any) => void): () => void;

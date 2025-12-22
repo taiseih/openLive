@@ -1,0 +1,26 @@
+# Dev Container用のDocker Compose設定
+version: "3.8"
+
+services:
+  # 開発用コンテナ
+  devcontainer:
+    build:
+      context: ..
+    dockerfile: .devcontainer/.dockerfile
+    volumes:
+      - ..:/workspace:cached
+      - /workspace/server/tmp
+      - /workspace/frontend/node_modules
+      - /workspace/frontend/.next
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    networks:
+      - openlive-network
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8080/api/v1/ws
+      # Backend Environment Variables
+      - PORT=8080
+      - ENV=development
+      - DATABASE_URL=postgres://openlive:openlive@postgres:5432/openlive_db?sslmode=disable
+      - CORS_ALLOW_ORIGINS=http://localhost:3000,http://localhost:8080
+    user: vscode

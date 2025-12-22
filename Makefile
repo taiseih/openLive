@@ -13,9 +13,9 @@ help: ## ヘルプを表示
 	@echo "または:"
 	@echo "  make all          - 全サービスを一括起動"
 
-# 共通インフラのみ起動（PostgreSQL + Firebase Emulator）
+# 共通インフラのみ起動（PostgreSQL）
 infra: ## 共通インフラのみ起動
-	@echo "Starting infrastructure services (PostgreSQL + Firebase Emulator)..."
+	@echo "Starting infrastructure services (PostgreSQL)..."
 	docker-compose up -d
 
 # Serverのみ起動
@@ -38,7 +38,6 @@ all: ## 全サービスを一括起動
 	@echo "✅ All services started!"
 	@echo "  - Frontend: http://localhost:3000"
 	@echo "  - Backend API: http://localhost:8080"
-	@echo "  - Firebase Emulator UI: http://localhost:4000"
 
 # 全サービスを停止
 down: ## 全サービスを停止

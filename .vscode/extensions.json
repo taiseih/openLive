@@ -1,0 +1,30 @@
+{
+  "recommendations": [
+    // 必須
+    "ms-vscode-remote.remote-containers",
+    
+    // Go
+    "golang.go",
+    
+    // TypeScript/JavaScript
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    
+    // Docker
+    "ms-azuretools.vscode-docker",
+    
+    // Git
+    "eamodio.gitlens",
+    
+    // Database
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg",
+    
+    // その他
+    "editorconfig.editorconfig",
+    "streetsidesoftware.code-spell-checker",
+    "naumovs.color-highlight",
+    "christian-kohler.path-intellisense"
+  ]
+}
+

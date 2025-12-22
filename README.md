@@ -87,6 +87,20 @@
 - Docker & Docker Compose
 - Go 1.21+ (ローカル実行の場合)
 - Node.js 18+ (ローカル実行の場合)
+- VS Code + Dev Containers拡張機能 (Dev Container使用時)
+
+### 🚀 Dev Container で開く（推奨）
+
+**最も簡単な開発方法！**
+
+1. VS Codeで拡張機能「Dev Containers」をインストール
+2. このプロジェクトを開く
+3. `Cmd+Shift+P` → `Dev Containers: Reopen in Container`
+4. コンテナ起動後、ターミナルで `make all` を実行
+
+すべての開発ツールとサービスがコンテナ内で動作します！
+
+詳細は [.devcontainer/README.md](.devcontainer/README.md) を参照してください。
 
 ### Docker環境での起動（推奨）
 

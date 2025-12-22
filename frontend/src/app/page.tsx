@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { useLiveStreams } from '@/hooks/useLiveStream';
-import { Button } from '@/components/common/Button';
-import { Loading } from '@/components/common/Loading';
-import { LiveStreamCard } from '@/components/LiveStream/LiveStreamCard';
+import { Button } from "@/components/common/Button";
+import { Loading } from "@/components/common/Loading";
+import { LiveStreamCard } from "@/components/LiveStream/LiveStreamCard";
+import { useAuth } from "@/hooks/useAuth";
+import { useLiveStreams } from "@/hooks/useLiveStream";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading: authLoading, signIn, signOut } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, signOut } = useAuth();
   const { streams, isLoading: streamsLoading } = useLiveStreams();
 
   if (authLoading) {
@@ -30,14 +30,18 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               {isAuthenticated ? (
                 <>
-                  <span className="text-gray-700">こんにちは、{user?.displayName || 'ゲスト'}さん</span>
-                  <Button onClick={() => router.push('/areas')}>マイエリア</Button>
+                  <span className="text-gray-700">
+                    こんにちは、{user?.displayName || "ゲスト"}さん
+                  </span>
+                  <Button onClick={() => router.push("/areas")}>
+                    マイエリア
+                  </Button>
                   <Button variant="secondary" onClick={signOut}>
                     ログアウト
                   </Button>
                 </>
               ) : (
-                <Button onClick={signIn}>Googleでログイン</Button>
+                <Button onClick={() => router.push("/login")}>ログイン</Button>
               )}
             </div>
           </div>
@@ -55,7 +59,7 @@ export default function Home() {
             あなただけの配信広場を作って、仲間とつながろう
           </p>
           {isAuthenticated && (
-            <Button onClick={() => router.push('/areas/new')}>
+            <Button onClick={() => router.push("/areas/new")}>
               ライブエリアを作成
             </Button>
           )}
@@ -63,7 +67,9 @@ export default function Home() {
 
         {/* 配信中の配信一覧 */}
         <section>
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">配信中のライブ</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">
+            配信中のライブ
+          </h3>
           {streamsLoading ? (
             <Loading />
           ) : streams.length === 0 ? (
@@ -95,4 +101,3 @@ export default function Home() {
     </div>
   );
 }
-

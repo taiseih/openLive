@@ -1,0 +1,68 @@
+{
+  // Go設定
+  "go.toolsManagement.autoUpdate": true,
+  "go.useLanguageServer": true,
+  "go.lintTool": "golangci-lint",
+  "go.lintOnSave": "workspace",
+  "go.formatTool": "goimports",
+
+  // TypeScript/JavaScript設定
+  "typescript.tsdk": "frontend/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  // エディタ設定
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+
+  // フォーマッター設定
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[go]": {
+    "editor.defaultFormatter": "golang.go"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // ファイル除外設定
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/tmp": true
+  },
+
+  // 検索除外設定
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/tmp": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/build": true
+  },
+
+  // ファイルの改行コード
+  "files.eol": "\n",
+
+  // Docker設定
+  "docker.defaultDockerComposeCommand": "docker-compose",
+
+  // その他
+  "files.associations": {
+    "*.air.toml": "toml",
+    "Dockerfile*": ".dockerfile",
+    "docker-compose*.yml": "yaml"
+  }
+}

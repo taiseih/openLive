@@ -1,77 +1,66 @@
-'use client';
+"use client";
 
-// Single Responsibility Principle (SRP): 認証のみに責任を持つ
-import { initializeApp, FirebaseApp } from 'firebase/app';
-import {
-  getAuth,
-  Auth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
-  User,
-  connectAuthEmulator,
-} from 'firebase/auth';
-import { IAuthService } from '@/types/interfaces';
+// Single Responsibility Principle (SRP): 認証フロー（OAuthリダイレクト）のみを担当
+import { IAuthService } from "@/types/interfaces";
+
+// Next.js のビルド時にインライン展開される環境変数用の型定義（Node型定義に依存しない）
+declare const process: { env: { NEXT_PUBLIC_API_URL?: string } };
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+
+// API_BASE が `http://localhost:8080/api/v1` のような形式である前提で、ベースURLを組み立てる
+const resolveAuthUrl = (path: string) => {
+  try {
+    const url = new URL(API_BASE);
+    return `${url.origin}${url.pathname.replace(/\/$/, "")}${path}`;
+  } catch {
+    // NEXT_PUBLIC_API_URL が不正な場合のフォールバック
+    return `http://localhost:8080/api/v1${path}`;
+  }
+};
 
 export class AuthService implements IAuthService {
-  private auth: Auth;
-  private app: FirebaseApp;
-
-  constructor() {
-    // Firebase初期化
-    this.app = initializeApp({
-      apiKey: 'demo-api-key', // Emulator使用時はダミーでOK
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'openlive-dev',
-    });
-
-    this.auth = getAuth(this.app);
-
-    // Emulator接続
-    const emulatorHost = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST;
-    if (emulatorHost && typeof window !== 'undefined') {
-      connectAuthEmulator(this.auth, `http://${emulatorHost}`, { disableWarnings: true });
-    }
+  async signInWithGoogle(): Promise<void> {
+    if (typeof window === "undefined") return;
+    const loginUrl = resolveAuthUrl("/auth/login");
+    window.location.href = loginUrl;
   }
 
-  async signInWithGoogle(): Promise<void> {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(this.auth, provider);
-    } catch (error) {
-      console.error('Sign in error:', error);
-      throw error;
-    }
+  async signInWithAccessToken(token: string): Promise<void> {
+    if (typeof window === "undefined") return;
+    // アクセストークンを直接指定してログインする方式
+    localStorage.setItem("auth_token", token);
   }
 
   async signOut(): Promise<void> {
+    const logoutUrl = resolveAuthUrl("/auth/logout");
     try {
-      await firebaseSignOut(this.auth);
+      await fetch(logoutUrl, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (typeof window !== "undefined") {
+        // トークンをローカルストレージから削除（後続のuseAuthで状態リセット）
+        localStorage.removeItem("auth_token");
+      }
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error("Sign out error:", error);
       throw error;
     }
   }
 
   async getCurrentToken(): Promise<string | null> {
-    const user = this.auth.currentUser;
-    if (!user) return null;
-
-    try {
-      const token = await user.getIdToken();
-      return token;
-    } catch (error) {
-      console.error('Get token error:', error);
-      return null;
-    }
+    if (typeof window === "undefined") return null;
+    // OAuth コールバックで保存されたトークンを参照する想定
+    return localStorage.getItem("auth_token");
   }
 
-  onAuthStateChanged(callback: (user: User | null) => void): () => void {
-    return onAuthStateChanged(this.auth, callback);
-  }
-
-  getCurrentUser(): User | null {
-    return this.auth.currentUser;
+  // 旧Firebase用のAPIとの互換用ダミー実装（現状は未使用）
+  // 認証状態は useAuth 内で getCurrentToken を通じて判定する
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onAuthStateChanged(_callback: (user: any) => void): () => void {
+    return () => {};
   }
 }
-

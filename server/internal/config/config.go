@@ -11,7 +11,7 @@ import (
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
-	Firebase FirebaseConfig
+	OAuth    OAuthConfig
 	CORS     CORSConfig
 }
 
@@ -32,11 +32,15 @@ type DatabaseConfig struct {
 	SSLMode  string
 }
 
-// FirebaseConfig はFirebase設定を保持します
-type FirebaseConfig struct {
-	ProjectID           string
-	AuthEmulatorHost    string
-	CredentialsFilePath string
+// OAuthConfig はOAuth設定を保持します
+type OAuthConfig struct {
+	GoogleClientID     string
+	GoogleClientSecret string
+	RedirectURL        string
+	AuthURL            string
+	TokenURL           string
+	UserInfoURL        string
+	JWTSecret          string
 }
 
 // CORSConfig はCORS設定を保持します
@@ -63,10 +67,14 @@ func Load() (*Config, error) {
 			Name:     getEnv("DB_NAME", "openlive_db"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
-		Firebase: FirebaseConfig{
-			ProjectID:           getEnv("FIREBASE_PROJECT_ID", "openlive-dev"),
-			AuthEmulatorHost:    getEnv("FIREBASE_AUTH_EMULATOR_HOST", ""),
-			CredentialsFilePath: getEnv("GOOGLE_APPLICATION_CREDENTIALS", ""),
+		OAuth: OAuthConfig{
+			GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
+			GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
+			RedirectURL:        getEnv("OAUTH_REDIRECT_URL", "http://localhost:8080/api/v1/auth/callback"),
+			AuthURL:            getEnv("OAUTH_AUTH_URL", "https://accounts.google.com/o/oauth2/v2/auth"),
+			TokenURL:           getEnv("OAUTH_TOKEN_URL", "https://oauth2.googleapis.com/token"),
+			UserInfoURL:        getEnv("OAUTH_USERINFO_URL", "https://www.googleapis.com/oauth2/v3/userinfo"),
+			JWTSecret:          getEnv("AUTH_JWT_SECRET", "change-me"),
 		},
 		CORS: CORSConfig{
 			AllowOrigins: getEnv("CORS_ALLOW_ORIGINS", "http://localhost:3000"),

@@ -32,22 +32,7 @@ services:
     networks:
       - openlive-network
 
-  # Firebase Emulator
-  firebase:
-    build:
-      context: .
-      dockerfile: docker/firebase/Dockerfile
-    container_name: openlive-firebase
-    ports:
-      - "9099:9099"  # Auth Emulator
-      - "4000:4000"  # Emulator UI
-    networks:
-      - openlive-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9099"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+
 
 networks:
   openlive-network:

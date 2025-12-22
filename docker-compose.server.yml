@@ -1,7 +1,7 @@
 # openLive Server（Backend）専用 Docker Compose
 #
 # 【前提条件】
-# 共通インフラ（PostgreSQL, Firebase Emulator）が起動している必要があります。
+# 共通インフラ（PostgreSQL）が起動している必要があります。
 # docker-compose up -d を先に実行してください。
 #
 # 【起動方法】
@@ -31,8 +31,6 @@ services:
       - PORT=8080
       - ENV=development
       - DATABASE_URL=postgres://openlive:openlive@postgres:5432/openlive_db?sslmode=disable
-      - FIREBASE_PROJECT_ID=openlive-dev
-      - FIREBASE_AUTH_EMULATOR_HOST=firebase:9099
       - CORS_ALLOW_ORIGINS=http://localhost:3000,http://localhost:8080
     volumes:
       - ./server:/app

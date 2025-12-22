@@ -1,0 +1,105 @@
+{
+  "name": "openLive Development",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.devcontainer.yml"
+  ],
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  
+  // 起動時に実行するコマンド
+  "postCreateCommand": "echo 'Dev Container initialized!'",
+  "postStartCommand": "echo 'Dev Container started!'",
+  
+  // 拡張機能
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Go
+        "golang.go",
+        
+        // TypeScript/JavaScript
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        
+        // Docker
+        "ms-azuretools.vscode-docker",
+        
+        // Git
+        "eamodio.gitlens",
+        
+        // Database
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg",
+        
+        // その他
+        "editorconfig.editorconfig",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "go.toolsManagement.autoUpdate": true,
+        "go.useLanguageServer": true,
+        "go.lintTool": "golangci-lint",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "[go]": {
+          "editor.defaultFormatter": "golang.go"
+        },
+        "files.eol": "\n"
+      }
+    }
+  },
+  
+  // フォワードするポート
+  "forwardPorts": [
+    3000,  // Frontend
+    8080,  // Backend API
+    5432,  // PostgreSQL
+    9099,  // Firebase Auth Emulator
+    4000   // Firebase Emulator UI
+  ],
+  
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Backend API",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "9099": {
+      "label": "Firebase Auth",
+      "onAutoForward": "silent"
+    },
+    "4000": {
+      "label": "Firebase UI",
+      "onAutoForward": "notify"
+    }
+  },
+  
+  // コンテナ内で実行するユーザー
+  "remoteUser": "vscode",
+  
+  // マウント設定
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  ],
+  
+  // 機能
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "username": "vscode"
+    }
+  }
+}
+
